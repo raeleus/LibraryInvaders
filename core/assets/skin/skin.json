@@ -1,0 +1,76 @@
+{
+com.badlogic.gdx.graphics.g2d.BitmapFont: {
+	font: {
+		file: font-export.fnt
+	}
+	title: {
+		file: font-title-export.fnt
+	}
+}
+com.badlogic.gdx.graphics.Color: {
+	black: {
+		r: 0
+		g: 0
+		b: 0
+		a: 1
+	}
+	clear: {
+		r: 1
+		g: 0
+		b: 0
+		a: 0
+	}
+	icon-color: {
+		r: 1
+		g: 0
+		b: 0
+		a: 1
+	}
+}
+com.badlogic.gdx.scenes.scene2d.ui.Skin$TintedDrawable: {
+	selecter-icon-colored: {
+		name: selecter-icon
+		color: icon-color
+	}
+	selecter-icon-clear: {
+		name: selecter-icon
+		color: clear
+	}
+	bg: {
+		name: white
+		color: black
+	}
+}
+com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton$ImageTextButtonStyle: {
+	default: {
+		imageUp: selecter-icon-clear
+		imageOver: selecter-icon-colored
+		font: font
+	}
+}
+com.badlogic.gdx.scenes.scene2d.ui.Label$LabelStyle: {
+	default: {
+		font: font
+	}
+	title: {
+		font: title
+	}
+}
+com.badlogic.gdx.scenes.scene2d.ui.ScrollPane$ScrollPaneStyle: {
+	default: {
+		hScrollKnob: scrollpane-h
+		vScrollKnob: scrollpane-v
+	}
+}
+com.badlogic.gdx.scenes.scene2d.ui.TextTooltip$TextTooltipStyle: {
+	default: {
+		label: default
+	}
+}
+com.badlogic.gdx.scenes.scene2d.ui.Window$WindowStyle: {
+	default: {
+		background: window
+		titleFont: font
+	}
+}
+}
