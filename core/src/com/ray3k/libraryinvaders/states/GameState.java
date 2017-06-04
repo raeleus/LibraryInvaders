@@ -28,6 +28,7 @@ import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -87,7 +88,7 @@ public class GameState extends State {
         PlayerEntity player = new PlayerEntity(this);
         
         float y = Gdx.graphics.getHeight() - 70.0f;
-        for (int row = 0; row < 5; row++) {
+        for (int row = 0; row < 4; row++) {
             float rowHeight = 0.0f;
             float x = 0.0f;
             for (int column = 0; column < 7; column++) {
@@ -107,6 +108,8 @@ public class GameState extends State {
         final int BARRICADE_COUNT = 4;
         for (int i = 0; i < BARRICADE_COUNT; i++) {
             BarricadeEntity barricade = new BarricadeEntity(this);
+            Array<String> names = getCore().getImagePacks().get(Core.DATA_PATH + "/barricades");
+            barricade.setTextureRegion(getCore().getAtlas().findRegion(names.random()));
             
             barricade.setX(barricadesWidth);
             barricade.setY(30.0f + player.getTextureRegion().getRegionHeight() + 35.0f);
@@ -119,7 +122,6 @@ public class GameState extends State {
         final float GAP = (Gdx.graphics.getWidth() - barricadesWidth - 100.0f) / (BARRICADE_COUNT - 1);
         
         for (int i = 1; i < barricades.size; i++) {
-            System.out.println(barricadesWidth);
             BarricadeEntity barricade = barricades.get(i);
             barricade.addX(GAP * i);
             barricadesWidth += GAP;
@@ -128,6 +130,7 @@ public class GameState extends State {
         final float addX = (Gdx.graphics.getWidth() - barricadesWidth) / 2.0f;
         for (BarricadeEntity barricade : barricades) {
             barricade.addX(addX);
+            subdivideBarricade(barricade);
         }
     }
     
@@ -202,5 +205,25 @@ public class GameState extends State {
         if (this.score > highscore) {
             highscore = this.score;
         }
+    }
+
+    private void subdivideBarricade(BarricadeEntity barricade) {
+        final int ROWS = 3;
+        final int COLUMNS = 5;
+        final int WIDTH = barricade.getTextureRegion().getRegionWidth() / COLUMNS;
+        final int HEIGHT = barricade.getTextureRegion().getRegionHeight() / ROWS;
+        
+        for (int y = 0; y < ROWS; y++) {
+            for (int x = 0; x < COLUMNS; x++) {
+                BarricadeEntity piece = new BarricadeEntity(this);
+                piece.setPosition(x * WIDTH + barricade.getX(), y * HEIGHT + barricade.getY());
+                piece.getCollisionBox().width = WIDTH;
+                piece.getCollisionBox().height = HEIGHT;
+                TextureRegion tex = new TextureRegion(barricade.getTextureRegion(), x * WIDTH, (ROWS - y - 1) * HEIGHT, WIDTH, HEIGHT);
+                piece.setTextureRegion(tex);
+            }
+        }
+        
+        barricade.dispose();
     }
 }

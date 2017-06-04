@@ -1,3 +1,12 @@
+package com.ray3k.libraryinvaders.entities;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.ray3k.libraryinvaders.Entity;
+import com.ray3k.libraryinvaders.states.GameState;
+
 /*
  * The MIT License
  *
@@ -22,24 +31,29 @@
  * THE SOFTWARE.
  */
 
-package com.ray3k.libraryinvaders.entities;
+public class WhiteFlashEntity extends Entity {
+    private TextureRegion region;
+    private final static float LIFE_MAX = .3f;
+    private float life;
 
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.ray3k.libraryinvaders.Entity;
-import com.ray3k.libraryinvaders.states.GameState;
-
-public class BarricadeEntity extends Entity {
-    public BarricadeEntity(GameState gameState) {
+    public WhiteFlashEntity(GameState gameState) {
         super(gameState.getEntityManager(), gameState.getCore());
     }
     
     @Override
     public void create() {
-        setCheckingCollisions(true);
+        region = getCore().getAtlas().findRegion("white");
+        setDepth(-1000);
+        
+        life = LIFE_MAX;
     }
 
     @Override
     public void act(float delta) {
+        life -= delta;
+        if (life < 0.0f) {
+            dispose();
+        }
     }
 
     @Override
@@ -48,6 +62,9 @@ public class BarricadeEntity extends Entity {
 
     @Override
     public void draw(SpriteBatch spriteBatch, float delta) {
+        spriteBatch.setColor(1.0f, 1.0f, 1.0f, life / LIFE_MAX);
+        spriteBatch.draw(region, 0.0f, 0.0f, 0.0f, 0.0f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), 1.0f, 1.0f, 0.0f);
+        spriteBatch.setColor(Color.WHITE);
     }
 
     @Override
@@ -56,11 +73,5 @@ public class BarricadeEntity extends Entity {
 
     @Override
     public void collision(Entity other) {
-        if (other instanceof BulletEntity) {
-            if (!other.isDestroyed()) {
-                other.dispose();
-                dispose();
-            }
-        }
     }
 }

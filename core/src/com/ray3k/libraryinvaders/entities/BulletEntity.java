@@ -24,7 +24,11 @@
 
 package com.ray3k.libraryinvaders.entities;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.utils.Array;
+import com.ray3k.libraryinvaders.Core;
 import com.ray3k.libraryinvaders.Entity;
 import com.ray3k.libraryinvaders.states.GameState;
 
@@ -37,10 +41,24 @@ public class BulletEntity extends Entity {
     
     @Override
     public void create() {
+        setTextureRegion(getBullet());
+        
+        setCheckingCollisions(true);
+        getCollisionBox().width = getTextureRegion().getRegionWidth();
+        getCollisionBox().height = getTextureRegion().getRegionHeight();
     }
 
     @Override
     public void act(float delta) {
+        if (getY() + getTextureRegion().getRegionHeight() < 0) {
+            dispose();
+        } else if (getY() > Gdx.graphics.getHeight()) {
+            dispose();
+        }
+    }
+
+    @Override
+    public void act_end(float delta) {
     }
 
     @Override
@@ -61,5 +79,11 @@ public class BulletEntity extends Entity {
 
     public void setParent(Entity parent) {
         this.parent = parent;
+    }
+    
+    private TextureRegion getBullet() {
+        Array<String> names = getCore().getImagePacks().get(Core.DATA_PATH + "/lasers");
+        
+        return getCore().getAtlas().findRegion(names.random());
     }
 }

@@ -23,27 +23,26 @@
  */
 package com.ray3k.libraryinvaders;
 
-import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.utils.Array;
 
 public class InputManager implements InputProcessor {
-    private final Array<FlapListener> flapListeners;
+    private final Array<KeyActionListener> flapListeners;
 
     public InputManager() {
-        flapListeners = new Array<FlapListener>();
+        flapListeners = new Array<KeyActionListener>();
     }
     
-    public interface FlapListener {
-        public void flapPressed();
+    public interface KeyActionListener {
+        public void keyPressed(int key);
     }
     
-    public void addFlapListener(FlapListener flapListener) {
-        flapListeners.add(flapListener);
+    public void addKeyActionListener(KeyActionListener listener) {
+        flapListeners.add(listener);
     }
     
-    public void removeFlapListener(FlapListener flapListener) {
-        flapListeners.removeValue(flapListener, true);
+    public void removeKeyActionListener(KeyActionListener listener) {
+        flapListeners.removeValue(listener, true);
     }
     
     public void dispose() {
@@ -52,10 +51,8 @@ public class InputManager implements InputProcessor {
 
     @Override
     public boolean keyDown(int keycode) {
-        if (keycode == Keys.SPACE) {
-            for (FlapListener flapListener : flapListeners) {
-                flapListener.flapPressed();
-            }
+        for (KeyActionListener flapListener : flapListeners) {
+            flapListener.keyPressed(keycode);
         }
         return false;
     }

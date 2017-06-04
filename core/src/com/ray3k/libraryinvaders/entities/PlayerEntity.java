@@ -25,22 +25,27 @@
 package com.ray3k.libraryinvaders.entities;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.ray3k.libraryinvaders.Core;
 import com.ray3k.libraryinvaders.Entity;
+import com.ray3k.libraryinvaders.InputManager;
 import com.ray3k.libraryinvaders.states.GameState;
 
-public class PlayerEntity extends Entity {
+public class PlayerEntity extends Entity implements InputManager.KeyActionListener {
     private Sound damageSound;
     private Sound shotSound;
+    private GameState gameState;
     
     public PlayerEntity(GameState gameState) {
         super(gameState.getEntityManager(), gameState.getCore());
+        this.gameState = gameState;
     }
 
     @Override
     public void create() {
+        setCheckingCollisions(true);
         setTextureRegion(getCore().getAtlas().findRegion(((GameState) getCore().getStateManager().getState("game")).getSelectedCharacter()));
         
         damageSound = getCore().getAssetManager().get(Core.DATA_PATH + "/sfx/player-hit.wav", Sound.class);
@@ -49,33 +54,64 @@ public class PlayerEntity extends Entity {
         setX(Gdx.graphics.getWidth() / 2.0f - getTextureRegion().getRegionWidth() / 2.0f);
         setY(30.0f);
         
-        setOffsetX(getTextureRegion().getRegionWidth() / 2.0f);
-        setOffsetY(getTextureRegion().getRegionHeight() / 2.0f);
-        getCollisionBox().setSize(getTextureRegion().getRegionWidth() / 2.0f, getTextureRegion().getRegionHeight() / 2.0f);
+        getCollisionBox().setSize(getTextureRegion().getRegionWidth(), getTextureRegion().getRegionHeight());
+        
+        ((GameState)getCore().getStateManager().getState("game")).getInputManager().addKeyActionListener(this);
     }
 
     @Override
     public void act(float delta) {
+        if (Gdx.input.isKeyPressed(Keys.LEFT)) {
+            setMotion(200.0f, 180.0f);
+        } else if (Gdx.input.isKeyPressed(Keys.RIGHT)) {
+            setMotion(200.0f, 0.0f);
+        } else {
+            setMotion(0.0f, 0.0f);
+        }
+    }
+
+    @Override
+    public void act_end(float delta) {
+        
     }
 
     @Override
     public void draw(SpriteBatch spriteBatch, float delta) {
+        
     }
 
     @Override
     public void destroy() {
+        
     }
 
     @Override
     public void collision(Entity other) {
-        
         if (other instanceof BulletEntity) {
             BulletEntity bullet = (BulletEntity) other;
             if (bullet.getParent() != this) {
                 damageSound.play();
+                bullet.dispose();
                 dispose();
+                new WhiteFlashEntity(gameState);
             }
+        } else if (other instanceof EnemyEntity) {
+            EnemyEntity enemy = (EnemyEntity) other;
+            damageSound.play();
+            enemy.dispose();
+            dispose();
+            new WhiteFlashEntity(gameState);
         }
     }
 
+    @Override
+    public void keyPressed(int key) {
+        if (!isDestroyed() && key == Keys.SPACE) {
+            BulletEntity bullet = new BulletEntity(gameState);
+            bullet.setParent(this);
+            bullet.setPosition(getX() + getTextureRegion().getRegionWidth() / 2.0f - bullet.getTextureRegion().getRegionWidth() / 2.0f, getY() + getTextureRegion().getRegionHeight() / 2.0f - bullet.getTextureRegion().getRegionHeight() / 2.0f);
+            bullet.setMotion(500.0f, 90.0f);
+            shotSound.play();
+        }
+    }
 }

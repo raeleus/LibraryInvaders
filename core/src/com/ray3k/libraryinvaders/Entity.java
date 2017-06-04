@@ -41,7 +41,7 @@ public abstract class Entity {
     private final Core core;
     private final Vector2 gravity;
     private int depth;
-    private Rectangle collisionBox;
+    private final Rectangle collisionBox;
     private boolean checkingCollisions;
 
     public Entity(EntityManager manager, Core core) {
@@ -68,6 +68,8 @@ public abstract class Entity {
     public abstract void create();
     
     public abstract void act(float delta);
+    
+    public abstract void act_end(float delta);
     
     public abstract void draw(SpriteBatch spriteBatch, float delta);
     

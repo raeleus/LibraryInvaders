@@ -75,6 +75,13 @@ public class EntityManager {
                 iter.remove();
             }
         }
+        
+        iter = entities.iterator();
+        while (iter.hasNext()) {
+            Entity entity = iter.next();
+            
+            entity.act_end(delta);
+        }
     }
     
     public void draw(SpriteBatch spriteBatch, float delta) {
