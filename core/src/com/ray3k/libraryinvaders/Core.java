@@ -14,6 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.ray3k.libraryinvaders.states.GameOverState;
 import com.ray3k.libraryinvaders.states.GameState;
 import com.ray3k.libraryinvaders.states.LoadingState;
 import com.ray3k.libraryinvaders.states.MenuState;
@@ -90,6 +91,7 @@ public class Core extends ApplicationAdapter {
         stateManager.addState("loading", new LoadingState("menu", this));
         stateManager.addState("menu", new MenuState(this));
         stateManager.addState("game", new GameState(this));
+        stateManager.addState("game-over", new GameOverState(this));
         
         spriteBatch = new SpriteBatch();
         

@@ -28,15 +28,19 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.utils.Array;
 import com.ray3k.libraryinvaders.Core;
 import com.ray3k.libraryinvaders.Entity;
 import com.ray3k.libraryinvaders.InputManager;
 import com.ray3k.libraryinvaders.states.GameState;
+import java.util.Iterator;
 
 public class PlayerEntity extends Entity implements InputManager.KeyActionListener {
     private Sound damageSound;
     private Sound shotSound;
     private GameState gameState;
+    private Array<BulletEntity> myBullets;
+    private static final int MAX_BULLETS = 1;
     
     public PlayerEntity(GameState gameState) {
         super(gameState.getEntityManager(), gameState.getCore());
@@ -45,6 +49,7 @@ public class PlayerEntity extends Entity implements InputManager.KeyActionListen
 
     @Override
     public void create() {
+        myBullets = new Array<BulletEntity>();
         setCheckingCollisions(true);
         setTextureRegion(getCore().getAtlas().findRegion(((GameState) getCore().getStateManager().getState("game")).getSelectedCharacter()));
         
@@ -82,7 +87,9 @@ public class PlayerEntity extends Entity implements InputManager.KeyActionListen
 
     @Override
     public void destroy() {
-        
+        damageSound.play();
+        new WhiteFlashEntity(gameState);
+        new GameOverTimerEntity(gameState, 1.0f);
     }
 
     @Override
@@ -90,28 +97,35 @@ public class PlayerEntity extends Entity implements InputManager.KeyActionListen
         if (other instanceof BulletEntity) {
             BulletEntity bullet = (BulletEntity) other;
             if (bullet.getParent() != this) {
-                damageSound.play();
                 bullet.dispose();
                 dispose();
-                new WhiteFlashEntity(gameState);
             }
         } else if (other instanceof EnemyEntity) {
             EnemyEntity enemy = (EnemyEntity) other;
-            damageSound.play();
             enemy.dispose();
             dispose();
-            new WhiteFlashEntity(gameState);
         }
     }
 
     @Override
     public void keyPressed(int key) {
         if (!isDestroyed() && key == Keys.SPACE) {
-            BulletEntity bullet = new BulletEntity(gameState);
-            bullet.setParent(this);
-            bullet.setPosition(getX() + getTextureRegion().getRegionWidth() / 2.0f - bullet.getTextureRegion().getRegionWidth() / 2.0f, getY() + getTextureRegion().getRegionHeight() / 2.0f - bullet.getTextureRegion().getRegionHeight() / 2.0f);
-            bullet.setMotion(500.0f, 90.0f);
-            shotSound.play();
+            Iterator<BulletEntity> iter = myBullets.iterator();
+            while (iter.hasNext()) {
+                BulletEntity bullet = iter.next();
+                if (bullet.isDestroyed()) {
+                    iter.remove();
+                }
+            }
+            
+            if (myBullets.size < MAX_BULLETS) {
+                BulletEntity bullet = new BulletEntity(gameState);
+                bullet.setParent(this);
+                bullet.setPosition(getX() + getTextureRegion().getRegionWidth() / 2.0f - bullet.getTextureRegion().getRegionWidth() / 2.0f, getY() + getTextureRegion().getRegionHeight() / 2.0f - bullet.getTextureRegion().getRegionHeight() / 2.0f);
+                bullet.setMotion(500.0f, 90.0f);
+                shotSound.play();
+                myBullets.add(bullet);
+            }
         }
     }
 }

@@ -24,7 +24,6 @@
 
 package com.ray3k.libraryinvaders.entities;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -34,28 +33,25 @@ import com.ray3k.libraryinvaders.Core;
 import com.ray3k.libraryinvaders.Entity;
 import com.ray3k.libraryinvaders.states.GameState;
 
-public class EnemyEntity extends Entity {
-    private static final float CREEP_AMOUNT = 15.0f;
-    private static final float BULLET_TIMER_MIN = 20.0f;
-    private static final float BULLET_TIMER_MAX = 40.0f;
-    private static final int POINT_WORTH = 10;
+public class UfoEntity extends Entity {
+    private static final float BULLET_TIMER_MIN = 1.0f;
+    private static final float BULLET_TIMER_MAX = 5.0f;
     private float bulletTimer;
-    private boolean queueBounce;
-    private GameState gameState;
     private Sound bulletSound;
     private Sound hitSound;
-    public static float speedMultiplier = 1.0f;
-
-    public EnemyEntity(GameState gameState) {
+    private GameState gameState;
+    private static final int POINT_WORTH = 70;
+    
+    public UfoEntity(GameState gameState) {
         super(gameState.getEntityManager(), gameState.getCore());
         this.gameState = gameState;
     }
-    
+
     @Override
     public void create() {
         setCheckingCollisions(true);
-        setTextureRegion(getEnemy());
-        setMotion(60.0f * speedMultiplier, 0.0f);
+        setTextureRegion(getUfo());
+        setMotion(90.0f, 180.0f);
         
         getCollisionBox().setSize(getTextureRegion().getRegionWidth(), getTextureRegion().getRegionHeight());
         
@@ -67,12 +63,8 @@ public class EnemyEntity extends Entity {
 
     @Override
     public void act(float delta) {
-        if (getX() + getTextureRegion().getRegionWidth() > Gdx.graphics.getWidth() || getX() < 0.0f) {
-            for (Entity ent : gameState.getEntityManager().getEntities()) {
-                if (ent instanceof EnemyEntity) {
-                    ((EnemyEntity) ent).queueBounce = true;
-                }
-            }
+        if (getX() + getTextureRegion().getRegionWidth() < 0) {
+            dispose();
         }
         
         bulletTimer -= delta;
@@ -87,24 +79,10 @@ public class EnemyEntity extends Entity {
             
             bullet.setMotion(100.0f, 270.0f);
         }
-        
-        if (getY() + getTextureRegion().getRegionHeight() < 0) {
-            for (Entity entity : gameState.getEntityManager().getEntities()) {
-                if (entity instanceof PlayerEntity) {
-                    entity.dispose();
-                }
-            }
-            dispose();
-        }
     }
 
     @Override
     public void act_end(float delta) {
-        if (queueBounce) {
-            queueBounce = false;
-            setXspeed(-getXspeed());
-            addY(-CREEP_AMOUNT);
-        }
     }
 
     @Override
@@ -117,9 +95,7 @@ public class EnemyEntity extends Entity {
 
     @Override
     public void collision(Entity other) {
-        if (other instanceof BarricadeEntity) {
-            other.dispose();
-        } else if (other instanceof BulletEntity) {
+        if (other instanceof BulletEntity) {
             if (((BulletEntity) other).getParent() instanceof PlayerEntity) {
                 other.dispose();
                 dispose();
@@ -128,9 +104,9 @@ public class EnemyEntity extends Entity {
             }
         }
     }
-    
-    private TextureRegion getEnemy() {
-        Array<String> names = getCore().getImagePacks().get(Core.DATA_PATH + "/enemies");
+
+    private TextureRegion getUfo() {
+        Array<String> names = getCore().getImagePacks().get(Core.DATA_PATH + "/ufos");
         
         return getCore().getAtlas().findRegion(names.random());
     }

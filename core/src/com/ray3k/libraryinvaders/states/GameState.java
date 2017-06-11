@@ -30,18 +30,21 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.ray3k.libraryinvaders.Core;
+import com.ray3k.libraryinvaders.Entity;
 import com.ray3k.libraryinvaders.EntityManager;
 import com.ray3k.libraryinvaders.InputManager;
 import com.ray3k.libraryinvaders.State;
 import com.ray3k.libraryinvaders.entities.BarricadeEntity;
 import com.ray3k.libraryinvaders.entities.EnemyEntity;
 import com.ray3k.libraryinvaders.entities.PlayerEntity;
+import com.ray3k.libraryinvaders.entities.UfoEntity;
 
 public class GameState extends State {
     private String selectedCharacter;
@@ -53,7 +56,11 @@ public class GameState extends State {
     private Skin skin;
     private Stage stage;
     private Table table;
+    private Label scoreLabel;
     private EntityManager entityManager;
+    private float respawnTimer;
+    private float ufoTimer;
+    private static final float UFO_MAX_TIME = 20.0f;
     
     public GameState(Core core) {
         super(core);
@@ -61,7 +68,11 @@ public class GameState extends State {
     
     @Override
     public void start() {
+        EnemyEntity.speedMultiplier = 1.0f;
+        respawnTimer = -1;
         score = 0;
+        
+        ufoTimer = UFO_MAX_TIME;
         
         inputManager = new InputManager();
         
@@ -87,21 +98,7 @@ public class GameState extends State {
         entityManager = new EntityManager();
         PlayerEntity player = new PlayerEntity(this);
         
-        float y = Gdx.graphics.getHeight() - 70.0f;
-        for (int row = 0; row < 4; row++) {
-            float rowHeight = 0.0f;
-            float x = 0.0f;
-            for (int column = 0; column < 7; column++) {
-                EnemyEntity enemy = new EnemyEntity(this);
-                enemy.setX(x);
-                enemy.setY(y - enemy.getTextureRegion().getRegionHeight());
-                x += enemy.getTextureRegion().getRegionWidth() + 30.0f;
-                if (enemy.getTextureRegion().getRegionHeight() > rowHeight) {
-                    rowHeight = enemy.getTextureRegion().getRegionHeight();
-                }
-            }
-            y -= rowHeight + 30.0f;
-        }
+        spawnEntities();
         
         Array<BarricadeEntity> barricades = new Array<BarricadeEntity>();
         float barricadesWidth = 0.0f;
@@ -132,6 +129,35 @@ public class GameState extends State {
             barricade.addX(addX);
             subdivideBarricade(barricade);
         }
+        
+        createStageElements();
+    }
+    
+    private void spawnEntities() {
+        float y = Gdx.graphics.getHeight() - 70.0f;
+        for (int row = 0; row < 4; row++) {
+            float rowHeight = 0.0f;
+            float x = 0.0f;
+            for (int column = 0; column < 7; column++) {
+                EnemyEntity enemy = new EnemyEntity(this);
+                enemy.setX(x);
+                enemy.setY(y - enemy.getTextureRegion().getRegionHeight());
+                x += enemy.getTextureRegion().getRegionWidth() + 30.0f;
+                if (enemy.getTextureRegion().getRegionHeight() > rowHeight) {
+                    rowHeight = enemy.getTextureRegion().getRegionHeight();
+                }
+            }
+            y -= rowHeight + 30.0f;
+        }
+    }
+    
+    private void createStageElements() {
+        Table root = new Table();
+        root.setFillParent(true);
+        stage.addActor(root);
+        
+        scoreLabel = new Label("0", skin);
+        root.add(scoreLabel).expandY().padTop(25.0f).top();
     }
     
     @Override
@@ -153,6 +179,35 @@ public class GameState extends State {
         entityManager.act(delta);
         
         stage.act(delta);
+        
+        if (respawnTimer > 0) {
+            respawnTimer -= delta;
+            
+            if (respawnTimer <= 0) {
+                EnemyEntity.speedMultiplier += 1.0f;
+                spawnEntities();
+                respawnTimer = -1;
+            }
+        } else {
+            boolean setTimer = true;
+            for (Entity entity : entityManager.getEntities()) {
+                if (entity instanceof EnemyEntity) {
+                    setTimer = false;
+                    break;
+                }
+            }
+            
+            if (setTimer) {
+                respawnTimer = 2.0f;
+            }
+        }
+        
+        ufoTimer -= delta;
+        if (ufoTimer <= 0) {
+            UfoEntity ufo = new UfoEntity(this);
+            ufo.setPosition(Gdx.graphics.getWidth(), Gdx.graphics.getHeight() - ufo.getTextureRegion().getRegionHeight() - 25.0f);
+            ufoTimer = UFO_MAX_TIME;
+        }
     }
 
     @Override
@@ -193,7 +248,7 @@ public class GameState extends State {
 
     public void setScore(int score) {
         this.score = score;
-//        scoreLabel.setText(Integer.toString(score));
+        scoreLabel.setText(Integer.toString(score));
         if (score > highscore) {
             highscore = score;
         }
@@ -201,7 +256,7 @@ public class GameState extends State {
     
     public void addScore(int score) {
         this.score += score;
-//        scoreLabel.setText(Integer.toString(this.score));
+        scoreLabel.setText(Integer.toString(this.score));
         if (this.score > highscore) {
             highscore = this.score;
         }
